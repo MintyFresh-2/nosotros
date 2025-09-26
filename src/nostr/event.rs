@@ -42,16 +42,19 @@ impl UnsignedEvent {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_timestamp(mut self, timestamp: u64) -> Self {
         self.created_at = timestamp;
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_tags(mut self, tags: Vec<Vec<String>>) -> Self {
         self.tags = tags;
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_kind(mut self, kind: u16) -> Self {
         self.kind = kind;
         self
@@ -99,6 +102,7 @@ impl NostrEvent {
     }
 
 
+    #[allow(dead_code)]
     pub fn verify_signature(&self, public_key_hex: &str) -> Result<bool> {
         let id_bytes = hex::decode(&self.id)?;
         let sig_bytes = hex::decode(&self.sig)?;
@@ -128,6 +132,7 @@ impl NostrEvent {
         }
     }
 
+    #[allow(dead_code)]
     pub fn to_json(&self) -> Result<String> {
         Ok(serde_json::to_string(self)?)
     }

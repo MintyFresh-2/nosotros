@@ -1,6 +1,10 @@
 mod nostr;
 mod connection;
 mod commands;
+mod keystore;
+mod accounts;
+mod tui;
+mod error;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -17,6 +21,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Launch the terminal user interface
+    Tui,
     /// Generate a new keypair
     Keygen,
     /// Post a text note
@@ -36,11 +42,17 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::Tui => {
+            if let Err(e) = tui::run() {
+                eprintln!("TUI error: {}", e);
+            }
+        }
         Commands::Keygen => {
             let keypair = generate_keypair()?;
             println!("Generated new keypair:");
             println!("Private key: {}", keypair.secret_key_hex());
-            println!("Public key: {}", keypair.public_key_hex());
+            println!("Public key (hex): {}", keypair.public_key_hex());
+            println!("Public key (npub): {}", keypair.public_key_npub()?);
         }
         Commands::Post { text, relay, key } => {
             let post_command = PostCommand::new(text, relay, key);
