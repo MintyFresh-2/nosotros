@@ -1,5 +1,5 @@
 use anyhow::Result;
-use secp256k1::{Secp256k1, SecretKey, PublicKey, Keypair, hashes::{sha256, Hash}};
+use secp256k1::{Secp256k1, SecretKey, PublicKey, Keypair};
 use secp256k1::rand;
 
 pub struct NostrKeypair {
@@ -16,7 +16,7 @@ impl NostrKeypair {
     }
 
     pub fn public_key_hex(&self) -> String {
-        hex::encode(self.keypair.public_key().serialize())
+        hex::encode(self.keypair.public_key().x_only_public_key().0.serialize())
     }
 
     pub fn public_key(&self) -> PublicKey {
@@ -29,8 +29,9 @@ impl NostrKeypair {
 
     pub fn sign_message(&self, message: &[u8]) -> Result<Vec<u8>> {
         let secp = Secp256k1::new();
-        let hash = sha256::Hash::hash(message);
-        let signature = secp.sign_schnorr(hash.as_byte_array(), &self.keypair);
+        let message_array: [u8; 32] = message.try_into()
+            .map_err(|_| anyhow::anyhow!("Message must be exactly 32 bytes"))?;
+        let signature = secp.sign_schnorr(&message_array, &self.keypair);
         Ok(signature.as_ref().to_vec())
     }
 }

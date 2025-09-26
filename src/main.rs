@@ -1,9 +1,11 @@
-mod event;
-mod keys;
-mod relay_manager;
+mod nostr;
+mod connection;
+mod commands;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use commands::PostCommand;
+use nostr::generate_keypair;
 
 #[derive(Parser)]
 #[command(name = "nosotros")]
@@ -18,7 +20,13 @@ enum Commands {
     /// Generate a new keypair
     Keygen,
     /// Post a text note
-    Post { text: String },
+    Post {
+        text: String,
+        #[arg(long)]
+        relay: String,
+        #[arg(long)]
+        key: String,
+    },
     /// Connect to relay and listen for events
     Listen { relay_url: String },
 }
@@ -29,18 +37,20 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Commands::Keygen => {
-            let keypair = keys::generate_keypair()?;
+            let keypair = generate_keypair()?;
             println!("Generated new keypair:");
             println!("Private key: {}", keypair.secret_key_hex());
             println!("Public key: {}", keypair.public_key_hex());
         }
-        Commands::Post { text } => {
-            println!("Would post: {}", text);
-            // TODO: Implement posting
+        Commands::Post { text, relay, key } => {
+            let post_command = PostCommand::new(text, relay, key);
+            if let Err(e) = post_command.execute().await {
+                eprintln!("Post command failed: {}", e);
+            }
         }
         Commands::Listen { relay_url } => {
             println!("Connecting to relay: {}", relay_url);
-            let mut relay_manager = relay_manager::RelayManager::new();
+            let mut relay_manager = connection::RelayManager::new();
 
             match relay_manager.add_relay(&relay_url).await {
                 Ok(()) => {
