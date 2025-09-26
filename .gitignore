@@ -1,5 +1,4 @@
 /target
 
-# Claude Code context files (keep local, not in shared repo)
-PROJECT_CONTEXT.md
-NOSTR_PROTOCOL_CONTEXT.md
+# Exclude all markdown files
+*.md
